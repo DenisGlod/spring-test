@@ -29,13 +29,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HelloController {
 
-    @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/only-admin")
     public String hello(Authentication authentication) {
         return "Hello, " + authentication.getName() + "!";
     }
 
-    @PreAuthorize("hasRole('user')")
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/only-user")
     public String hello1(Authentication authentication) {
         return "Hello, " + authentication.getName() + "!";

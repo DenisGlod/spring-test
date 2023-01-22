@@ -2,12 +2,12 @@ spring:
   main:
     banner-mode: off
   datasource:
-    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://sca-orporas-t;databaseName=MTIWeb;encrypt=false;trustServerCertificate=false;
-    password: lethn34olj
-    username: devMTIWeb
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/springtest
+    password: springtest
+    username: springtest
   jpa:
-    database: sql_server
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
     show-sql: false
     hibernate:

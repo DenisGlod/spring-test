@@ -16,10 +16,10 @@
 
 package com.example.springjwt.controller;
 
-import java.time.Instant;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -28,34 +28,47 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
+import java.util.stream.Collectors;
+
 /**
  * A controller for the token resource.
  *
  * @author Josh Cummings
  */
 @RestController
+@RequiredArgsConstructor
 public class TokenController {
 
-	@Autowired
-	JwtEncoder encoder;
+    private final JwtEncoder encoder;
 
-	@PostMapping("/token")
-	public String token(Authentication authentication) {
-		Instant now = Instant.now();
-		long expiry = 36000L;
-		// @formatter:off
-		String scope = authentication.getAuthorities().stream()
-				.map(GrantedAuthority::getAuthority)
-				.collect(Collectors.joining(" "));
-		JwtClaimsSet claims = JwtClaimsSet.builder()
-				.issuer("self")
-				.issuedAt(now)
-				.expiresAt(now.plusSeconds(expiry))
-				.subject(authentication.getName())
-				.claim("scope", scope)
-				.build();
-		// @formatter:on
-		return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-	}
+    @PostMapping("/token")
+    public ResponseEntity<?> token(Authentication authentication) {
+        Instant now = Instant.now();
+        long expiry = 600;
+        String scope = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(" "));
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("self")
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(expiry))
+                .subject(authentication.getName())
+                .claim("scope", scope)
+                .build();
+        String tokenValue = this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+        ResponseCookie cookie = ResponseCookie
+                .from("access", tokenValue)
+                .domain("localhost")
+                .path("/")
+                .httpOnly(true)
+                .secure(false)
+                .maxAge(expiry)
+                .sameSite("Lax")
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .build();
+    }
 
 }
